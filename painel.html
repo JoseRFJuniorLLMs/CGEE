@@ -98,6 +98,17 @@
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
   .chip{font-size:12px;background:var(--cinza-2);border:1px solid var(--cinza-5);padding:5px 10px;border-radius:20px;cursor:pointer}
   .chip:hover{border-color:var(--azul);color:var(--azul)}
+  .ano-pill{font-family:var(--ff);font-size:13px;font-weight:700;padding:7px 16px;border-radius:40px;border:1.5px solid var(--cinza-10);background:#fff;color:var(--txt-mut);cursor:pointer;transition:.15s}
+  .ano-pill:hover{border-color:var(--azul);color:var(--azul)}
+  .ano-pill.on{background:var(--azul);border-color:var(--azul);color:#fff}
+  .fsbtn{margin-left:8px;font-size:12px;font-weight:700;border:1px solid var(--cinza-10);background:#fff;color:var(--azul);border-radius:6px;padding:5px 12px;cursor:pointer}
+  .fsbtn:hover{background:#eaf1fd;border-color:var(--azul)}
+  .card.fs{position:fixed;inset:14px;z-index:1000;overflow:auto;box-shadow:0 0 0 100vmax rgba(7,29,65,.55)}
+  .wn rect:first-of-type{transition:filter .12s}
+  .wn:hover rect:first-of-type{filter:drop-shadow(0 2px 7px rgba(19,81,180,.45))}
+  .wn{cursor:default}
+  #tip{position:fixed;z-index:1200;max-width:300px;background:var(--azul-night);color:#fff;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.3);pointer-events:none;opacity:0;transition:opacity .12s}
+  #tip.show{opacity:1}
 
   /* Escudo */
   .shield{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;border-radius:var(--radius);text-align:center;transition:.3s}
@@ -172,13 +183,31 @@
   <!-- KPIs -->
   <section class="grid kpis" id="kpis" style="margin-bottom:16px"></section>
 
+  <div id="anoBar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+    <span class="muted" style="font-weight:700;font-size:13px">EXERCÍCIO ORÇAMENTÁRIO:</span>
+    <span id="anoPills" style="display:flex;gap:8px;flex-wrap:wrap"></span>
+  </div>
+
   <!-- Seção 1: Linha do tempo -->
   <section class="card" style="margin-bottom:16px">
     <div class="hd"><span class="sec-ico">⏳</span><h2>1 · Linha do Tempo Viva &amp; Viagem no Tempo</h2><span class="tag">AS OF LSN</span></div>
     <div class="bd">
       <div class="tl-top">
-        <div class="muted">Arraste para reconstruir o estado exato do orçamento em qualquer ponto do log imutável.</div>
-        <div>AS OF LSN <span class="asof" id="asofLsn">—</span> · <span class="asof" id="asofData">—</span></div>
+        <div class="muted">Arraste — ou <b>reproduza</b> — para reconstruir o estado do orçamento em qualquer ponto do log imutável.</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-azul" id="playBtn" style="padding:7px 16px">▶ Reproduzir</button>
+          <div>AS OF LSN <span class="asof" id="asofLsn">—</span> · <span class="asof" id="asofData">—</span></div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;padding-bottom:4px" id="hmWrap"><div id="hmChart"></div></div>
+      <div style="display:flex;align-items:center;gap:5px;justify-content:flex-end;font-size:11px;color:var(--txt-mut);margin:2px 2px 14px">
+        Menos
+        <span style="width:12px;height:12px;border-radius:3px;background:#ebedf0;display:inline-block"></span>
+        <span style="width:12px;height:12px;border-radius:3px;background:#9be9a8;display:inline-block"></span>
+        <span style="width:12px;height:12px;border-radius:3px;background:#40c463;display:inline-block"></span>
+        <span style="width:12px;height:12px;border-radius:3px;background:#30a14e;display:inline-block"></span>
+        <span style="width:12px;height:12px;border-radius:3px;background:#216e39;display:inline-block"></span>
+        Mais
       </div>
       <div class="svgwrap" id="tlChart"></div>
       <div class="slider-wrap">
@@ -194,11 +223,11 @@
 
   <div class="grid" style="grid-template-columns:1.4fr 1fr;align-items:start" id="mid">
     <!-- Seção 2: WHY -->
-    <section class="card">
-      <div class="hd"><span class="sec-ico" style="background:#0c326f">🔎</span><h2>2 · Inspetor Causal — WHY</h2><span class="tag">Proveniência</span></div>
+    <section class="card" id="whyCard">
+      <div class="hd"><span class="sec-ico" style="background:#0c326f">🔎</span><h2>2 · Inspetor Causal — WHY</h2><span class="tag">Proveniência</span><button class="fsbtn" id="whyFs">⛶ Tela cheia</button></div>
       <div class="bd">
         <div class="why-input">
-          <input id="whyInput" placeholder="Cole o nº da portaria (ex.: PORTARIA-MPO-2026-0481)" />
+          <input id="whyInput" placeholder="Cole o nº da portaria (ex.: PM-196-2026)" />
           <button class="btn btn-azul" id="whyBtn">Investigar Causa Raiz</button>
         </div>
         <div class="chips" id="whyChips"></div>
@@ -297,6 +326,8 @@ function gerarEventos(n){
   return out;
 }
 let EVENTOS = gerarEventos(640);
+let EVENTOS_FULL = EVENTOS;   // dataset completo (todos os anos); EVENTOS = vista filtrada
+let anoFiltro = "todos";
 let LIVE=false;
 
 /* ========== KPIs principais ========== */
@@ -316,16 +347,21 @@ function renderKpis(){
 
 /* ========== Timeline SVG ========== */
 let asOfIdx = EVENTOS.length-1;
+let CUMPOS=[],CUMNET=[],CUMANU=[],CHARTPTS=[],CHARTMAX=1;
+function recompute(){
+  const ev=EVENTOS, n=ev.length; CUMPOS=new Array(n); CUMNET=new Array(n); CUMANU=new Array(n);
+  let p=0,net=0,anu=0;
+  for(let i=0;i<n;i++){ const v=ev[i].valor; p+=Math.max(v,0); net+=v; if(v<0)anu-=v; CUMPOS[i]=p; CUMNET[i]=net; CUMANU[i]=anu; }
+  CHARTMAX=p||1;
+  const MAXP=500, step=Math.max(1,Math.ceil(n/MAXP)); CHARTPTS=[];
+  for(let i=0;i<n;i++){ if(i%step===0||i===n-1) CHARTPTS.push([n>1?i/(n-1):0, CUMPOS[i]]); }
+}
 function renderTimelineChart(){
-  const ev=EVENTOS, W=1240,H=200,pad=8; const n=ev.length; if(!n)return;
-  const MAXP=500, step=Math.max(1,Math.ceil(n/MAXP));
-  let acc=0, cumAsOf=0; const pts=[];
-  for(let i=0;i<n;i++){ acc+=Math.max(ev[i].valor,0); if(i<=asOfIdx) cumAsOf=acc; if(i%step===0||i===n-1) pts.push([i/(n-1),acc]); }
-  const maxY=acc||1;
-  const X=p=>pad+p*(W-2*pad), Y=v=>H-10-(v/maxY)*(H-30);
-  let d="M"+X(0)+","+Y(0); pts.forEach(p=>{d+=" L"+X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1);});
+  const W=1240,H=200,pad=8; const n=EVENTOS.length; if(!n||!CHARTPTS.length)return;
+  const maxY=CHARTMAX, X=p=>pad+p*(W-2*pad), Y=v=>H-10-(v/maxY)*(H-30);
+  let d="M"+X(0)+","+Y(0); CHARTPTS.forEach(p=>{d+=" L"+X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1);});
   const area=d+" L"+X(1)+","+H+" L"+X(0)+","+H+" Z";
-  const cx=X(asOfIdx/(n-1));
+  const cx=X(n>1?asOfIdx/(n-1):0), cumAsOf=CUMPOS[asOfIdx]||0;
   $("#tlChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:200px;width:100%">
     <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1351B4" stop-opacity=".35"/><stop offset="1" stop-color="#1351B4" stop-opacity="0"/></linearGradient></defs>
@@ -333,32 +369,91 @@ function renderTimelineChart(){
     <line x1="${cx}" y1="6" x2="${cx}" y2="${H-6}" stroke="#E52207" stroke-width="2" stroke-dasharray="4 3"/>
     <circle cx="${cx}" cy="${Y(cumAsOf)}" r="5" fill="#E52207" stroke="#fff" stroke-width="2"/></svg>`;
 }
-function renderTimeline(){
-  const ev=EVENTOS; const slice=ev.slice(0,asOfIdx+1);
-  const cur=ev[asOfIdx];
+
+/* ========== heatmap estilo GitHub (contribuições diárias) ========== */
+const HM_COLORS=["#ebedf0","#9be9a8","#40c463","#30a14e","#216e39"];
+const MES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+let HM={squares:[],monthLabels:[],weeks:0,cell:15,SQ:12,padL:32,padT:20,start:0,w:0,h:0};
+function prepHeatmap(){
+  const ev=EVENTOS, n=ev.length, dayMs=86400000, cell=15, SQ=12, padL=32, padT=20;
+  if(!n){ HM={squares:[],monthLabels:[],weeks:0,cell,SQ,padL,padT,start:0,w:0,h:0}; return; }
+  const dkey=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime();};
+  const counts=new Map();
+  for(let i=0;i<n;i++){ const k=dkey(ev[i].data); const v=Math.abs(ev[i].valor); const o=counts.get(k); if(o){o.c++;o.vol+=v;} else counts.set(k,{c:1,vol:v}); }
+  const vals=[...counts.values()].map(o=>o.c).sort((a,b)=>a-b);
+  const q=p=>vals[Math.min(vals.length-1,Math.floor(p*vals.length))]||1;
+  const t1=q(0.4),t2=q(0.7),t3=q(0.9);
+  const bucket=c=> c<=0?0:c<=t1?1:c<=t2?2:c<=t3?3:4;
+  const first=new Date(ev[0].data); first.setHours(0,0,0,0);
+  const start=new Date(first); start.setDate(start.getDate()-start.getDay());
+  const last=new Date(ev[n-1].data); last.setHours(0,0,0,0);
+  const totalDays=Math.round((last-start)/dayMs)+1, weeks=Math.ceil(totalDays/7);
+  const squares=[];
+  for(let d=0;d<totalDays;d++){
+    const date=new Date(start.getTime()+d*dayMs), col=Math.floor(d/7), row=date.getDay();
+    const o=counts.get(date.getTime());
+    squares.push({x:padL+col*cell,y:padT+row*cell,b:o?bucket(o.c):0,ms:date.getTime(),c:o?o.c:0,vol:o?o.vol:0});
+  }
+  const monthLabels=[]; let lastM=-1;
+  for(let c=0;c<weeks;c++){ const wd=new Date(start.getTime()+(c*7+3)*dayMs); if(wd.getMonth()!==lastM){ lastM=wd.getMonth(); monthLabels.push({x:padL+c*cell,m:MES[wd.getMonth()]}); } }
+  HM={squares,monthLabels,weeks,cell,SQ,padL,padT,start:start.getTime(),w:padL+weeks*cell+12,h:padT+7*cell+8};
+}
+function renderHeatmap(){
+  prepHeatmap();
+  if(!HM.squares.length){ $("#hmChart").innerHTML=""; return; }
+  const {squares,monthLabels,SQ,padL,padT,cell,w,h}=HM;
+  let empty="",colored="";
+  for(const s of squares){
+    const dt=new Date(s.ms).toLocaleDateString("pt-BR");
+    const tip=s.c>0?`${s.c} alteração(ões) em ${dt} · R$ ${(s.vol||0).toLocaleString("pt-BR",{maximumFractionDigits:0})}`:`Sem alterações · ${dt}`;
+    empty+=`<rect x="${s.x}" y="${s.y}" width="${SQ}" height="${SQ}" rx="3" fill="#ebedf0" data-tip="${tip}"/>`;
+    if(s.b>0) colored+=`<rect x="${s.x}" y="${s.y}" width="${SQ}" height="${SQ}" rx="3" fill="${HM_COLORS[s.b]}"/>`;
+  }
+  const months=monthLabels.map(o=>`<text x="${o.x}" y="${padT-6}" font-size="10" fill="#5b6471" font-family="Raleway,sans-serif">${o.m}</text>`).join("");
+  const days=[[1,"Seg"],[3,"Qua"],[5,"Sex"]].map(([r,l])=>`<text x="2" y="${padT+r*cell+SQ-2}" font-size="9" fill="#5b6471" font-family="Raleway,sans-serif">${l}</text>`).join("");
+  $("#hmChart").innerHTML=`<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="max-width:none;display:block">
+    <g>${empty}</g>
+    <clipPath id="hmclip"><rect id="hmclipRect" x="0" y="0" width="${w}" height="${h}"/></clipPath>
+    <g clip-path="url(#hmclip)" style="pointer-events:none">${colored}</g>
+    <g style="pointer-events:none">${months}${days}</g>
+  </svg>`;
+  updateHeatmapAsOf();
+}
+function updateHeatmapAsOf(){
+  if(!HM.squares.length)return;
+  const e=EVENTOS[asOfIdx]; if(!e)return;
+  const d=new Date(e.data); d.setHours(0,0,0,0);
+  const col=Math.floor((d.getTime()-HM.start)/86400000/7);
+  const r=document.getElementById("hmclipRect"); if(r) r.setAttribute("width",Math.max(0,HM.padL+(col+1)*HM.cell));
+}
+
+function renderTimeline(skipTable){
+  const ev=EVENTOS, n=ev.length; const cur=ev[asOfIdx];
   $("#asofLsn").textContent=cur?cur.lsn:"—";
   $("#asofData").textContent=cur?fmtData(cur.data):"—";
   $("#tlStart").textContent=ev[0]?ev[0].data.toLocaleDateString("pt-BR"):"";
-  $("#tlEnd").textContent=ev[ev.length-1]?ev[ev.length-1].data.toLocaleDateString("pt-BR"):"";
-  const vol=slice.reduce((s,e)=>s+e.valor,0);
-  const sup=slice.filter(e=>e.valor>0).reduce((s,e)=>s+e.valor,0);
-  const anu=slice.filter(e=>e.valor<0).reduce((s,e)=>s-e.valor,0);
+  $("#tlEnd").textContent=ev[n-1]?ev[n-1].data.toLocaleDateString("pt-BR"):"";
+  const sup=CUMPOS[asOfIdx]||0, anu=CUMANU[asOfIdx]||0, vol=CUMNET[asOfIdx]||0;
   $("#tlKpis").innerHTML=[
-    kpiCard("Eventos AS OF",fmtN(slice.length),"até LSN "+(cur?cur.lsn:0)),
+    kpiCard("Eventos AS OF",fmtN(asOfIdx+1),"até LSN "+(cur?cur.lsn:0)),
     kpiCard("Crédito concedido",fmtBRLc(sup),"suplementar+especial+extra"),
     kpiCard("Anulações",fmtBRLc(anu),"dotações canceladas"),
     kpiCard("Saldo líquido",fmtBRLc(vol),"no recorte temporal")
   ].join("");
-  const tb=$("#tlTable tbody"); tb.innerHTML="";
-  slice.slice(-40).reverse().forEach(e=>{
-    tb.appendChild(el("tr",null,
-      `<td style="color:#1351B4;font-weight:700">${e.lsn}</td><td>${fmtData(e.data)}</td>
-       <td style="font-family:monospace;font-size:12px">${e.portaria}</td>
-       <td>${e.orgao}<div class="muted" style="font-size:11px">UO ${e.orgaoCod} · ${e.acaoCod}</div></td>
-       <td><span class="badge ${e.tipoCls}">${e.tipo}</span></td>
-       <td class="num" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRL(e.valor)}</td>`));
-  });
+  if(!skipTable){
+    const tb=$("#tlTable tbody"); tb.innerHTML="";
+    const start=Math.max(0,asOfIdx-39);
+    for(let i=asOfIdx;i>=start;i--){ const e=ev[i];
+      tb.appendChild(el("tr",null,
+        `<td style="color:#1351B4;font-weight:700">${e.lsn}</td><td>${fmtData(e.data)}</td>
+         <td style="font-family:monospace;font-size:12px">${e.portaria}</td>
+         <td>${e.orgao}<div class="muted" style="font-size:11px">UO ${e.orgaoCod} · ${e.acaoCod}</div></td>
+         <td><span class="badge ${e.tipoCls}">${e.tipo}</span></td>
+         <td class="num" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRL(e.valor)}</td>`));
+    }
+  }
   renderTimelineChart();
+  updateHeatmapAsOf();
 }
 
 /* ========== WHY ========== */
@@ -368,31 +463,48 @@ function renderWhyChips(){
   $("#whyChips").innerHTML=picks.map(e=>`<span class="chip" data-p="${e.portaria}">${e.portaria}</span>`).join("");
   $("#whyChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{$("#whyInput").value=c.dataset.p;runWhy();});
 }
+function escTxt(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function escAttr(s){return escTxt(s).replace(/"/g,"&quot;");}
+function whyHash(e){ const h=Array.from(e.portaria).reduce((a,ch)=>((a*33+ch.charCodeAt(0))>>>0),5381).toString(16).padStart(8,"0"); return "0x"+h+(e.lsn*2654435761>>>0).toString(16).padStart(8,"0").slice(0,4); }
 function runWhy(){
   const q=$("#whyInput").value.trim();
-  const e=EVENTOS.find(x=>x.portaria.toLowerCase()===q.toLowerCase()) || EVENTOS.find(x=>x.portaria.toLowerCase().includes(q.toLowerCase()));
   if(!q){toast("Informe uma portaria.");return;}
-  if(!e){$("#whyGraph").innerHTML=`<div class="muted">Nenhuma portaria encontrada para “${q}”.</div>`;$("#whyDetail").innerHTML="";return;}
-  const chain=[
-    {t:"Origem",l:e.origem,c:"#5b6471",ic:"🌐"},
-    {t:"Credencial",l:e.cred,c:"#0c326f",ic:"🔑"},
-    {t:"Microsserviço",l:"api-siop/credito.append",c:"#1351B4",ic:"⚙️"},
-    {t:"Evento (log)",l:e.portaria,c:"#E52207",ic:"📜"},
-    {t:"Alteração",l:e.orgao+" · "+fmtBRLc(e.valor),c:"#168821",ic:"🏛️"}
-  ];
-  const W=1180,H=150,n=chain.length,bw=190,gap=(W-n*bw)/(n-1);
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:150px">`;
-  for(let i=0;i<n-1;i++){const x1=i*(bw+gap)+bw,x2=(i+1)*(bw+gap);s+=`<line x1="${x1}" y1="75" x2="${x2}" y2="75" stroke="#888" stroke-width="2" marker-end="url(#ar)"/>`;}
-  s+=`<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#888"/></marker></defs>`;
-  chain.forEach((c,i)=>{const x=i*(bw+gap);
-    s+=`<g><rect x="${x}" y="42" width="${bw}" height="66" rx="9" fill="#fff" stroke="${c.c}" stroke-width="2"/>
-      <text x="${x+14}" y="62" font-size="13">${c.ic}</text>
-      <text x="${x+38}" y="64" font-size="11" font-weight="700" fill="${c.c}" font-family="Raleway,sans-serif">${c.t}</text>
-      <text x="${x+14}" y="88" font-size="11" fill="#1c1c1c" font-family="monospace">${c.l.length>26?c.l.slice(0,25)+"…":c.l}</text></g>`;});
-  s+=`</svg>`; $("#whyGraph").innerHTML=s;
-  const hash=("0x"+Array.from(e.portaria).reduce((a,ch)=>((a*33+ch.charCodeAt(0))>>>0),5381).toString(16).padStart(8,"0"));
-  $("#whyDetail").innerHTML=`Hash vinculado <b style="color:#1351B4;font-family:monospace">${hash}…${(e.lsn*2654435761>>>0).toString(16).slice(0,4)}</b> ·
-    LSN <b>${e.lsn}</b> · ${fmtData(e.data)} · ação <b>${e.acaoCod}</b> ${e.acao} · proveniência confirmada na cadeia Merkle.`;
+  const e=EVENTOS_FULL.find(x=>x.portaria.toLowerCase()===q.toLowerCase()) || EVENTOS_FULL.find(x=>x.portaria.toLowerCase().includes(q.toLowerCase()));
+  if(!e){$("#whyGraph").innerHTML=`<div class="muted" style="padding:24px;text-align:center">Nenhuma portaria encontrada para “${escTxt(q)}”.</div>`;$("#whyDetail").innerHTML="";return;}
+  const rel=EVENTOS_FULL.filter(x=>x.orgao===e.orgao&&x.portaria!==e.portaria);
+  const hash=whyHash(e), W=1040,H=460,NW=176,NH=56;
+  const node=(x,y,c,ic,title,lines,tip,big)=>{
+    const w=big?NW+14:NW,h=big?NH+12:NH;
+    let t=`<g class="wn" data-tip="${escAttr(tip)}" transform="translate(${x},${y})">
+      <rect width="${w}" height="${h}" rx="10" fill="#fff" stroke="${c}" stroke-width="${big?2.5:2}"/>
+      <rect width="6" height="${h}" rx="3" fill="${c}"/>
+      <text x="18" y="24" font-size="14">${ic}</text>
+      <text x="40" y="25" font-size="11.5" font-weight="700" fill="${c}" font-family="Raleway,sans-serif">${escTxt(title.length>22?title.slice(0,21)+"…":title)}</text>`;
+    lines.forEach((l,i)=>{ l=String(l); t+=`<text x="18" y="${45+i*16}" font-size="10.5" fill="#1c1c1c" font-family="Raleway,sans-serif">${escTxt(l.length>32?l.slice(0,31)+"…":l)}</text>`; });
+    return t+`</g>`;
+  };
+  const edge=(x1,y1,x2,y2,c)=>`<path d="M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2}" fill="none" stroke="${c}" stroke-width="2" marker-end="url(#whyar)" opacity=".7"/>`;
+  const C={ip:"#5b6471",cred:"#0c326f",svc:"#1351B4",port:"#E52207",org:"#168821",acao:"#854F0B",tipo:"#534AB7",val:"#0c326f"};
+  const cy=200, px={ip:8,cred:210,svc:412,port:614,eff:850}, effY=[12,102,192,282,372];
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;min-height:300px">
+    <defs><marker id="whyar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9aa3b2"/></marker></defs>`;
+  s+=edge(px.ip+NW,cy+NH/2,px.cred,cy+NH/2,"#9aa3b2");
+  s+=edge(px.cred+NW,cy+NH/2,px.svc,cy+NH/2,"#9aa3b2");
+  s+=edge(px.svc+NW,cy+NH/2,px.port,cy+NH/2,"#9aa3b2");
+  effY.forEach(yy=>{ s+=edge(px.port+NW+14,cy+NH/2,px.eff,yy+NH/2,"#cdd5e0"); });
+  s+=node(px.ip,cy,C.ip,"🌐","Origem (IP)",[e.origem],"Endereço de rede que iniciou a requisição ao SIOP.");
+  s+=node(px.cred,cy,C.cred,"🔑","Credencial SIAFI",[e.cred],"Operador autenticado no SIAFI — responsável legal pela operação.");
+  s+=node(px.svc,cy,C.svc,"⚙️","Microsserviço",["api-siop/credito.append","gRPC → log append-only"],"Serviço que validou e gravou o evento no log imutável.");
+  s+=node(px.port,cy-6,C.port,"📜",e.portaria,["Evento imutável · LSN "+e.lsn,fmtData(e.data)],"Ação registada no log append-only — nunca alterada, só acrescentada. Hash "+hash,true);
+  s+=node(px.eff,effY[0],C.org,"🏛️","Órgão beneficiário",[e.orgao,"UO "+e.orgaoCod],"Unidade orçamentária "+e.orgaoCod+" que recebeu o crédito: "+e.orgao);
+  s+=node(px.eff,effY[1],C.acao,"🎯","Ação orçamentária",[e.acaoCod,e.acao||"—"],"Programa de governo financiado: "+(e.acao||e.acaoCod));
+  s+=node(px.eff,effY[2],C.tipo,"🏷️","Tipo de alteração",[e.tipo],"Classificação legal do crédito orçamentário ("+e.tipo+").");
+  s+=node(px.eff,effY[3],C.val,"💰","Valor",[fmtBRL(e.valor)],(e.valor<0?"Redução/anulação de dotação: ":"Acréscimo de dotação: ")+fmtBRL(e.valor));
+  s+=node(px.eff,effY[4],C.port,"🔒","Selo Merkle",[hash,"BLAKE3 · íntegro"],"Hash que prende o evento à cadeia Merkle. Qualquer adulteração quebra a verificação.");
+  s+=`</svg>`;
+  $("#whyGraph").innerHTML=s;
+  const relTxt=rel.length?`<b>${rel.length}</b> outra(s) portaria(s) do mesmo órgão (ex.: ${rel.slice(0,3).map(r=>escTxt(r.portaria)).join(", ")})`:"única portaria do órgão na amostra";
+  $("#whyDetail").innerHTML=`<b>Causa-raiz reconstruída</b> — ${escTxt(e.origem)} → ${escTxt(e.cred)} → microsserviço → <b>${escTxt(e.portaria)}</b>. ${relTxt}. <span class="muted">Passe o rato sobre os nós para detalhes; <b>⛶ Tela cheia</b> para expandir.</span>`;
 }
 
 /* ========== Escudo forense ========== */
@@ -482,7 +594,7 @@ function renderEngine(){
 async function tentarLive(){
   let liveOk=false;
   try{
-    const t=await fetch("/api/timeline?limit=8000",{cache:"no-store"});
+    const t=await fetch("/api/timeline?limit=24000",{cache:"no-store"});
     if(t.ok){ const tj=await t.json();
       if(Array.isArray(tj.eventos)&&tj.eventos.length){
         EVENTOS=tj.eventos.map((e,i)=>({lsn:e.lsn!=null?e.lsn:i,data:new Date(e.data_oficial||e.data||Date.now()),
@@ -506,14 +618,51 @@ async function tentarLive(){
   bootRender();
 }
 
+/* ========== filtro por exercício (ano) ========== */
+function anosDisponiveis(){ return [...new Set(EVENTOS_FULL.map(e=>e.data.getFullYear()))].sort(); }
+function renderAnoPills(){
+  const anos=anosDisponiveis();
+  const mk=(lab,val)=>`<button class="ano-pill${String(anoFiltro)===String(val)?' on':''}" data-ano="${val}">${lab}</button>`;
+  $("#anoPills").innerHTML=[mk("Todos","todos"),...anos.map(a=>mk(a,a))].join("");
+  $("#anoPills").querySelectorAll(".ano-pill").forEach(b=>b.onclick=()=>setAno(b.dataset.ano));
+}
+function setAno(ano){
+  pararPlay();
+  anoFiltro=ano;
+  EVENTOS = (ano==="todos") ? EVENTOS_FULL : EVENTOS_FULL.filter(e=>String(e.data.getFullYear())===String(ano));
+  recompute();
+  asOfIdx=Math.max(0,EVENTOS.length-1);
+  const sl=$("#asof"); sl.value=100; sl.style.setProperty("--p","100%");
+  renderAnoPills(); renderHeatmap(); renderKpis(); renderTimeline(); renderCharts(); renderFeed(); renderWhyChips();
+}
+
 /* ========== boot ========== */
 function bootRender(){
+  EVENTOS_FULL = EVENTOS; anoFiltro = "todos";
+  recompute();
   asOfIdx=EVENTOS.length-1;
   const sl=$("#asof"); sl.max=100; sl.value=100;
-  renderKpis(); renderTimeline(); renderWhyChips(); renderBlocks(); renderCharts(); renderFeed(); renderEngine();
+  renderAnoPills(); renderHeatmap(); renderKpis(); renderTimeline(); renderWhyChips(); renderBlocks(); renderCharts(); renderFeed(); renderEngine();
   setShield(true,"Cadeia Merkle verificada — 100% de consistência matemática no log imutável.");
 }
+let playTimer=null;
+function pararPlay(){ if(playTimer){clearInterval(playTimer);playTimer=null;} const b=$("#playBtn"); if(b){b.textContent="▶ Reproduzir";b.classList.remove("btn-amar");b.classList.add("btn-azul");} }
+function tocar(){
+  const sl=$("#asof");
+  if(playTimer){ pararPlay(); renderTimeline(); return; }   // pausar → refresca a tabela
+  if(+sl.value>=100){ sl.value=0; }                          // no fim → recomeça
+  const b=$("#playBtn"); b.textContent="⏸ Pausar"; b.classList.remove("btn-azul"); b.classList.add("btn-amar");
+  playTimer=setInterval(()=>{
+    const v=Math.min(100,(+$("#asof").value)+1.1);
+    const sl=$("#asof"); sl.value=v; sl.style.setProperty("--p",v+"%");
+    asOfIdx=Math.max(0,Math.min(EVENTOS.length-1,Math.round((v/100)*(EVENTOS.length-1))));
+    renderTimeline(true);                                    // anima sem reconstruir a tabela
+    if(v>=100){ pararPlay(); renderTimeline(); }             // fim → render completo
+  },55);
+}
+$("#playBtn").onclick=tocar;
 $("#asof").addEventListener("input",e=>{
+  pararPlay();
   const p=+e.target.value; e.target.style.setProperty("--p",p+"%");
   asOfIdx=Math.max(0,Math.min(EVENTOS.length-1,Math.round((p/100)*(EVENTOS.length-1))));
   renderTimeline();
@@ -522,6 +671,27 @@ $("#whyBtn").onclick=runWhy;
 $("#whyInput").addEventListener("keydown",e=>{if(e.key==="Enter")runWhy();});
 $("#verifyBtn").onclick=verify;
 $("#tamperBtn").onclick=tamper;
+
+/* tooltip partilhado — heatmap (Secção 1) + grafo WHY (Secção 2) */
+const TIP=el("div"); TIP.id="tip"; document.body.appendChild(TIP);
+function attachTooltip(sel){
+  const g=$(sel); if(!g)return;
+  g.addEventListener("mousemove",ev=>{
+    const n=ev.target.closest && ev.target.closest("[data-tip]");
+    if(n){ TIP.textContent=n.getAttribute("data-tip"); TIP.classList.add("show");
+      TIP.style.left=Math.min(window.innerWidth-310,ev.clientX+14)+"px";
+      TIP.style.top=Math.min(window.innerHeight-70,ev.clientY+16)+"px"; }
+    else TIP.classList.remove("show");
+  });
+  g.addEventListener("mouseleave",()=>TIP.classList.remove("show"));
+}
+attachTooltip("#hmChart"); attachTooltip("#whyGraph");
+
+/* tela cheia do Inspetor Causal */
+function toggleWhyFs(){ const c=$("#whyCard"); c.classList.toggle("fs"); const on=c.classList.contains("fs");
+  $("#whyFs").textContent=on?"⛶ Sair (Esc)":"⛶ Tela cheia"; document.body.style.overflow=on?"hidden":""; }
+$("#whyFs").onclick=toggleWhyFs;
+document.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&$("#whyCard").classList.contains("fs")) toggleWhyFs(); });
 
 $("#asof").style.setProperty("--p","100%");
 tentarLive();
