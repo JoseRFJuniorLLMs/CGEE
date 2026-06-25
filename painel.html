@@ -1,6 +1,3 @@
-Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` devidamente corrigida conforme a sua opção escolhida:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -54,7 +51,7 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
   /* ===== Layout ===== */
   main{max-width:1320px;margin:0 auto;padding:22px 20px 60px}
   .grid{display:grid;gap:16px}
-  .card{background:var(--cinza-0);border:1px solid var(--cinza-5);border-radius:var(--radius);box-shadow:var(--sombra)}
+  .card{background:var(--cinza-0);border:1px solid var(--cinza-5);border-radius:var(--radius);box-shadow:var(--sombra);transition: .2s;}
   .card .hd{padding:14px 18px;border-bottom:1px solid var(--cinza-5);display:flex;align-items:center;gap:10px}
   .card .hd h2{font-size:16px}
   .card .hd .tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--azul);background:#eaf1fd;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
@@ -107,10 +104,11 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
   .fsbtn{margin-left:8px;font-size:12px;font-weight:700;border:1px solid var(--cinza-10);background:#fff;color:var(--azul);border-radius:6px;padding:5px 12px;cursor:pointer}
   .fsbtn:hover{background:#eaf1fd;border-color:var(--azul)}
   .card.fs{position:fixed;inset:14px;z-index:1000;overflow:auto;box-shadow:0 0 0 100vmax rgba(7,29,65,.55)}
+  .card.fs .scroll{max-height:none !important} /* Libera a rolagem interna em tela cheia */
   .wn rect:first-of-type{transition:filter .12s}
   .wn:hover rect:first-of-type{filter:drop-shadow(0 2px 7px rgba(19,81,180,.45))}
   .wn{cursor:default}
-  #tip{position:fixed;z-index:1200;max-width:300px;background:var(--azul-night);color:#fff;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.3);pointer-events:none;opacity:0;transition:opacity .12s}
+  #tip{position:fixed;z-index:1200;max-width:320px;background:var(--azul-night);color:#fff;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.3);pointer-events:none;opacity:0;transition:opacity .12s}
   #tip.show{opacity:1}
 
   /* Escudo */
@@ -122,7 +120,7 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
   .shield.ok h3,.shield.ok p{color:#0d5217} .shield.bad h3,.shield.bad p{color:#8a1f0c}
   .shield p{margin:0;font-size:13px;max-width:260px}
   .blocks{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;justify-content:center}
-  .blk{width:38px;height:46px;border-radius:5px;background:var(--verde);color:#fff;display:grid;place-items:center;font-size:9px;font-weight:700;position:relative;transition:.2s}
+  .blk{width:38px;height:46px;border-radius:5px;background:var(--verde);color:#fff;display:grid;place-items:center;font-size:9px;font-weight:700;position:relative;transition:.2s;cursor:help}
   .blk.bad{background:var(--vermelho);animation:shake .4s}
   .blk small{position:absolute;bottom:3px;font-size:7px;opacity:.85}
   @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
@@ -131,13 +129,15 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
   .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
   .muted{color:var(--txt-mut)}
   .feed{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto}
-  .feed li{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid var(--cinza-5);font-size:13px}
+  .feed li{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid var(--cinza-5);font-size:13px;transition:.1s}
+  .feed li:hover{background:#f4f8ff}
   .feed .ln{font-variant-numeric:tabular-nums;color:var(--azul);font-weight:700;min-width:54px}
   .feed .v{margin-left:auto;font-weight:700;color:var(--azul-esc);font-variant-numeric:tabular-nums;white-space:nowrap}
-  .info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--cinza-5);font-size:13px}
+  .info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--cinza-5);font-size:13px;transition:.1s}
+  .info-row:hover{background:#f4f8ff}
   .info-row b{font-weight:700;color:var(--azul-esc)}
   .mtags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .mtag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;background:#eaf1fd;color:var(--azul)}
+  .mtag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;background:#eaf1fd;color:var(--azul);cursor:help}
   .mtag.wip{background:#fff3cd;color:#7a5b00}
   footer{max-width:1320px;margin:0 auto;padding:24px 20px;color:var(--txt-mut);font-size:12px;border-top:1px solid var(--cinza-5)}
   .svgwrap{width:100%;overflow:hidden}
@@ -190,8 +190,8 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
     <span id="anoPills" style="display:flex;gap:8px;flex-wrap:wrap"></span>
   </div>
 
-  <section class="card" style="margin-bottom:16px">
-    <div class="hd"><span class="sec-ico">⏳</span><h2>1 · Linha do Tempo Viva &amp; Viagem no Tempo</h2><span class="tag">AS OF LSN</span></div>
+  <section class="card" id="tlCard" style="margin-bottom:16px">
+    <div class="hd"><span class="sec-ico">⏳</span><h2>1 · Linha do Tempo Viva &amp; Viagem no Tempo</h2><span class="tag">AS OF LSN</span><button class="fsbtn" id="tlFs">⛶ Tela cheia</button></div>
     <div class="bd">
       <div class="tl-top">
         <div class="muted">Arraste — ou <b>reproduza</b> — para reconstruir o estado do orçamento em qualquer ponto do log imutável.</div>
@@ -236,8 +236,8 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
       </div>
     </section>
 
-    <section class="card">
-      <div class="hd"><span class="sec-ico" style="background:#168821">🛡️</span><h2>3 · Escudo Forense</h2><span class="tag">Merkle · BLAKE3</span></div>
+    <section class="card" id="shieldCard">
+      <div class="hd"><span class="sec-ico" style="background:#168821">🛡️</span><h2>3 · Escudo Forense</h2><span class="tag">Merkle · BLAKE3</span><button class="fsbtn" id="shieldFs">⛶ Tela cheia</button></div>
       <div class="bd">
         <div class="shield ok" id="shield">
           <div class="ic" id="shieldIc">🛡️</div>
@@ -255,15 +255,29 @@ Aqui está o código completo do arquivo `painel.html` com a função `fmtBRLc` 
   </div>
 
   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px" id="charts">
-    <section class="card"><div class="hd"><span class="sec-ico" style="background:#155bcb">🏛️</span><h2>Volume por Órgão</h2></div><div class="bd"><div class="svgwrap" id="chOrgao"></div></div></section>
-    <section class="card"><div class="hd"><span class="sec-ico" style="background:#155bcb">📅</span><h2>Crédito por Exercício &amp; Tipo</h2></div><div class="bd"><div class="svgwrap" id="chAno"></div><div class="legend" id="legAno"></div></div></section>
+    <section class="card" id="orgaoCard">
+      <div class="hd"><span class="sec-ico" style="background:#155bcb">🏛️</span><h2>Volume por Órgão</h2><button class="fsbtn" id="orgaoFs">⛶ Tela cheia</button></div>
+      <div class="bd">
+        <div class="scroll" style="max-height:320px;">
+          <div class="svgwrap" id="chOrgao"></div>
+        </div>
+      </div>
+    </section>
+    <section class="card" id="anoCard">
+      <div class="hd"><span class="sec-ico" style="background:#155bcb">📅</span><h2>Crédito por Exercício &amp; Tipo</h2><button class="fsbtn" id="anoFs">⛶ Tela cheia</button></div>
+      <div class="bd"><div class="svgwrap" id="chAno"></div><div class="legend" id="legAno"></div></div>
+    </section>
   </div>
 
   <div class="grid" style="grid-template-columns:1.3fr 1fr;margin-top:16px">
-    <section class="card"><div class="hd"><span class="sec-ico" style="background:#0c326f">🌊</span><h2>Fluxo de Eventos (mais recentes)</h2><span class="tag">append-only</span></div>
-      <div class="bd"><ul class="feed" id="feed"></ul></div></section>
-    <section class="card"><div class="hd"><span class="sec-ico" style="background:#071D41">🧬</span><h2>Engine &amp; Garantias</h2></div>
-      <div class="bd" id="engineInfo"></div></section>
+    <section class="card" id="feedCard">
+      <div class="hd"><span class="sec-ico" style="background:#0c326f">🌊</span><h2>Fluxo de Eventos (mais recentes)</h2><span class="tag">append-only</span><button class="fsbtn" id="feedFs">⛶ Tela cheia</button></div>
+      <div class="bd"><ul class="feed" id="feed"></ul></div>
+    </section>
+    <section class="card" id="engineCard">
+      <div class="hd"><span class="sec-ico" style="background:#071D41">🧬</span><h2>Engine &amp; Garantias</h2><button class="fsbtn" id="engineFs">⛶ Tela cheia</button></div>
+      <div class="bd" id="engineInfo"></div>
+    </section>
   </div>
 </main>
 
@@ -283,7 +297,6 @@ const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
 const fmtBRL = v => "R$ "+ (v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 
-/* Ajustado conforme sua opção de formatação usando toLocaleString */
 const fmtBRLc = v => { 
   const a = Math.abs(v); 
   if (a >= 1e9) return "R$ " + (v / 1e9).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " bi"; 
@@ -336,8 +349,8 @@ let EVENTOS_FULL = EVENTOS;   // dataset completo (todos os anos); EVENTOS = vis
 let anoFiltro = "todos";
 let LIVE=false;
 
-/* ========== KPIs principais ========== */
-function kpiCard(lab,val,hint,cls){return `<div class="card kpi ${cls||''}"><div class="lab">${lab}</div><div class="val ${String(val).length>9?'sm':''}">${val}</div>${hint?`<div class="hint">${hint}</div>`:''}</div>`;}
+/* ========== KPIs principais com hints adicionadas ========== */
+function kpiCard(lab,val,hint,cls){return `<div class="card kpi ${cls||''}" data-tip="KPI: ${lab} — Valor: ${val} (${hint||''})"><div class="lab">${lab}</div><div class="val ${String(val).length>9?'sm':''}">${val}</div>${hint?`<div class="hint">${hint}</div>`:''}</div>`;}
 function renderKpis(){
   const ev=EVENTOS; const total=ev.reduce((s,e)=>s+Math.max(e.valor,0),0);
   const orgaos=new Set(ev.map(e=>e.orgao)).size; const anos=new Set(ev.map(e=>e.data.getFullYear())).size;
@@ -351,7 +364,7 @@ function renderKpis(){
   ].join("");
 }
 
-/* ========== Timeline SVG ========== */
+/* ========== Timeline SVG com hints adicionadas ========== */
 let asOfIdx = EVENTOS.length-1;
 let CUMPOS=[],CUMNET=[],CUMANU=[],CHARTPTS=[],CHARTMAX=1;
 function recompute(){
@@ -371,9 +384,9 @@ function renderTimelineChart(){
   $("#tlChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:200px;width:100%">
     <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1351B4" stop-opacity=".35"/><stop offset="1" stop-color="#1351B4" stop-opacity="0"/></linearGradient></defs>
-    <path d="${area}" fill="url(#g1)"/><path d="${d}" fill="none" stroke="#1351B4" stroke-width="2.5"/>
+    <path d="${area}" fill="url(#g1)" data-tip="Área de evolução acumulada do orçamento federal líquido"/><path d="${d}" fill="none" stroke="#1351B4" stroke-width="2.5"/>
     <line x1="${cx}" y1="6" x2="${cx}" y2="${H-6}" stroke="#E52207" stroke-width="2" stroke-dasharray="4 3"/>
-    <circle cx="${cx}" cy="${Y(cumAsOf)}" r="5" fill="#E52207" stroke="#fff" stroke-width="2"/></svg>`;
+    <circle cx="${cx}" cy="${Y(cumAsOf)}" r="5" fill="#E52207" stroke="#fff" stroke-width="2" data-tip="Posição de reconstrução temporal selecionada (AS OF LSN): ${fmtBRL(cumAsOf)}"/></svg>`;
 }
 
 /* ========== heatmap estilo GitHub (contribuições diárias) ========== */
@@ -450,12 +463,14 @@ function renderTimeline(skipTable){
     const tb=$("#tlTable tbody"); tb.innerHTML="";
     const start=Math.max(0,asOfIdx-39);
     for(let i=asOfIdx;i>=start;i--){ const e=ev[i];
-      tb.appendChild(el("tr",null,
-        `<td style="color:#1351B4;font-weight:700">${e.lsn}</td><td>${fmtData(e.data)}</td>
-         <td style="font-family:monospace;font-size:12px">${e.portaria}</td>
-         <td>${e.orgao}<div class="muted" style="font-size:11px">UO ${e.orgaoCod} · ${e.acaoCod}</div></td>
-         <td><span class="badge ${e.tipoCls}">${e.tipo}</span></td>
-         <td class="num" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRL(e.valor)}</td>`));
+      const tr = el("tr",null,
+        `<td style="color:#1351B4;font-weight:700" data-tip="Identificador Sequencial LSN do Bloco: #${e.lsn}">${e.lsn}</td>
+         <td data-tip="Data oficial do processamento legal: ${fmtData(e.data)}">${fmtData(e.data)}</td>
+         <td style="font-family:monospace;font-size:12px" data-tip="Código identificador do documento de portaria: ${e.portaria}">${e.portaria}</td>
+         <td data-tip="Órgão beneficiário: ${e.orgao} (UO: ${e.orgaoCod}) | Ação Orçamentária: ${e.acao} (Código: ${e.acaoCod})">${e.orgao}<div class="muted" style="font-size:11px">UO ${e.orgaoCod} · ${e.acaoCod}</div></td>
+         <td><span class="badge ${e.tipoCls}" data-tip="Tipo legal da alteração orçamentária: ${e.tipo}">${e.tipo}</span></td>
+         <td class="num" style="color:${e.valor<0?'#E52207':'#0c326f'}" data-tip="Valor financeiro impactado: ${fmtBRL(e.valor)}">${fmtBRL(e.valor)}</td>`);
+      tb.appendChild(tr);
     }
   }
   renderTimelineChart();
@@ -466,7 +481,7 @@ function renderTimeline(skipTable){
 function renderWhyChips(){
   const ev=EVENTOS; const rnd=mulberry32(7); const picks=[];
   for(let i=0;i<5;i++){picks.push(ev[(rnd()*ev.length)|0]);}
-  $("#whyChips").innerHTML=picks.map(e=>`<span class="chip" data-p="${e.portaria}">${e.portaria}</span>`).join("");
+  $("#whyChips").innerHTML=picks.map(e=>`<span class="chip" data-p="${e.portaria}" data-tip="Clique para preencher e investigar a portaria ${e.portaria}">${e.portaria}</span>`).join("");
   $("#whyChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{$("#whyInput").value=c.dataset.p;runWhy();});
 }
 function escTxt(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -513,16 +528,20 @@ function runWhy(){
   $("#whyDetail").innerHTML=`<b>Causa-raiz reconstruída</b> — ${escTxt(e.origem)} → ${escTxt(e.cred)} → microsserviço → <b>${escTxt(e.portaria)}</b>. ${relTxt}. <span class="muted">Passe o rato sobre os nós para detalhes; <b>⛶ Tela cheia</b> para expandir.</span>`;
 }
 
-/* ========== Escudo forense ========== */
+/* ========== Escudo forense com hints adicionadas ========== */
 let tampered=false;
 function renderBlocks(){
   const rnd=mulberry32(99); const wrap=$("#blocks"); wrap.innerHTML="";
   for(let i=0;i<10;i++){const h=Math.floor(rnd()*0xffffff).toString(16).padStart(6,"0");
-    const b=el("div","blk"+(tampered&&i===6?" bad":""),`B${i}<small>${h}</small>`); wrap.appendChild(b);}
+    const statusForense = tampered && i === 6 ? "VIOLADO! Hash local divergiu do Merkle Root criptográfico." : "INTEGRO. Selado via hash imutável BLAKE3.";
+    const b=el("div","blk"+(tampered&&i===6?" bad":""),`B${i}<small>${h}</small>`); 
+    b.setAttribute("data-tip", `Segmento de Bloco Criptográfico B${i} | Hash Root: 0x${h} | Status: ${statusForense}`);
+    wrap.appendChild(b);}
 }
 function setShield(ok,msg){
   const sh=$("#shield");
   sh.className="shield "+(ok?"ok":"bad");
+  sh.setAttribute("data-tip", `Escudo de Integridade: ${ok ? "SISTEMA SEGURO" : "ALERTA DE SEGURANÇA"} | ${msg}`);
   $("#shieldIc").textContent=ok?"🛡️":"⚠️";
   $("#shieldTitle").textContent=ok?"SISTEMA ÍNTEGRO":"VIOLAÇÃO DETECTADA";
   $("#shieldMsg").textContent=msg;
@@ -540,20 +559,30 @@ function localVerify(){
 }
 function tamper(){ tampered=true; renderBlocks(); setShield(false,"QUEBRA DE INTEGRIDADE: o hash do bloco B6 não confere com a raiz selada."); toast("Adulteração simulada — execute a auditoria"); }
 
-/* ========== Charts SVG ========== */
-function barH(data,unit){ // data:[{lab,val,cor}]
-  const W=560,bh=26,gap=10,pad=160; const max=Math.max(...data.map(d=>d.val))||1; const H=data.length*(bh+gap)+10;
-  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px">`;
-  data.forEach((d,i)=>{const y=i*(bh+gap)+5,w=(d.val/max)*(W-pad-70);
-    s+=`<text x="0" y="${y+17}" font-size="12" fill="#1c1c1c" font-family="Raleway,sans-serif">${d.lab.length>22?d.lab.slice(0,21)+"…":d.lab}</text>
+/* ========== Charts SVG com hints globais integradas e todos os órgãos cadastrados ========== */
+function barH(data, unit){ // data:[{lab,val,cor}]
+  // Definimos uma proporção equilibrada para caber nomes completos e as barras
+  const W=850,bh=26,gap=10,pad=350; const max=Math.max(...data.map(d=>d.val))||1; const H=data.length*(bh+gap)+10;
+  
+  // CORREÇÃO AQUI: Mudado para preserveAspectRatio="xMinYMin meet" (alinha no topo)
+  // E trocado height:${H}px por height:auto (faz a altura colar perfeitamente nos dados, sem espaços fantasmas)
+  let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" style="width:100%; height:auto; display:block;">`;
+  
+  data.forEach((d,i)=>{const y=i*(bh+gap)+5,w=(d.val/max)*(W-pad-100);
+    s+=`<g data-tip="Órgão: ${escAttr(d.lab)} | Volume Acumulado: ${fmtBRL(d.val)}">
+        <text x="0" y="${y+17}" font-size="12" fill="#1c1c1c" font-family="Raleway,sans-serif">${escTxt(d.lab)}</text>
         <rect x="${pad}" y="${y}" width="${Math.max(w,2)}" height="${bh}" rx="4" fill="${d.cor||'#1351B4'}"/>
-        <text x="${pad+Math.max(w,2)+6}" y="${y+17}" font-size="11" font-weight="700" fill="#0c326f" font-family="Raleway,sans-serif">${unit(d.val)}</text>`;});
+        <text x="${pad+Math.max(w,2)+10}" y="${y+17}" font-size="11" font-weight="700" fill="#0c326f" font-family="Raleway,sans-serif">${unit(d.val)}</text>
+        </g>`;});
   return s+`</svg>`;
 }
 function renderCharts(){
   const byOrg={}; EVENTOS.forEach(e=>{byOrg[e.orgao]=(byOrg[e.orgao]||0)+Math.max(e.valor,0);});
-  const topO=Object.entries(byOrg).map(([lab,val])=>({lab,val})).sort((a,b)=>b.val-a.val).slice(0,8);
+  
+  // Alteração 1: Removido o .slice(0,8) para renderizar absolutamente TODOS os órgãos da base de dados
+  const topO=Object.entries(byOrg).map(([lab,val])=>({lab,val})).sort((a,b)=>b.val-a.val);
   $("#chOrgao").innerHTML=barH(topO,fmtBRLc);
+  
   // por ano e tipo (stacked simples -> barras agrupadas por ano)
   const anos=[2023,2024,2025,2026]; const cores={"Crédito Suplementar":"#1351B4","Crédito Especial":"#FFCD07","Crédito Extraordinário":"#E52207","Remanejamento":"#168821","Anulação de Dotação":"#888"};
   const byAno={}; anos.forEach(a=>byAno[a]={});
@@ -563,36 +592,40 @@ function renderCharts(){
   let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px">`;
   anos.forEach((a,i)=>{let x=pad+i*(bw+gap),y=H-24; const tipos=Object.keys(cores);
     tipos.forEach(tp=>{const v=byAno[a][tp]||0; const h=(v/max)*(H-50); y-=h;
-      s+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,0)}" fill="${cores[tp]}"/>`;});
+      s+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,0)}" fill="${cores[tp]}" data-tip="Exercício: ${a} | Distribuição: ${tp} | Volume total: ${fmtBRL(v)}"/>`;});
     s+=`<text x="${x+bw/2}" y="${H-6}" font-size="12" text-anchor="middle" font-weight="700" fill="#5b6471" font-family="Raleway">${a}</text>`;});
   s+=`</svg>`; $("#chAno").innerHTML=s;
-  $("#legAno").innerHTML=Object.entries(cores).map(([t,c])=>`<span><i style="background:${c}"></i>${t}</span>`).join("");
+  $("#legAno").innerHTML=Object.entries(cores).map(([t,c])=>`<span data-tip="Legenda de Tipo Legal: ${t}"><i style="background:${c}"></i>${t}</span>`).join("");
 }
 
-/* ========== Feed + engine info ========== */
+/* ========== Feed de Eventos com hints adicionadas ========== */
 function renderFeed(){
   const ul=$("#feed"); ul.innerHTML="";
   EVENTOS.slice(-18).reverse().forEach(e=>{
-    ul.appendChild(el("li",null,`<span class="ln">#${e.lsn}</span>
+    const li = el("li",null,`<span class="ln">#e.lsn</span>
       <span><b>${e.orgao}</b><div class="muted" style="font-size:11px">${e.tipo} · ${fmtData(e.data)} · ${e.portaria}</div></span>
-      <span class="v" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRLc(e.valor)}</span>`));
+      <span class="v" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRLc(e.valor)}</span>`);
+    li.setAttribute("data-tip", `Log Evento #${e.lsn} | Doc: ${e.portaria} | Beneficiário: ${e.orgao} | Tipo legal: ${e.tipo} | Volume: ${fmtBRL(e.valor)} | Data: ${fmtData(e.data)}`);
+    ul.appendChild(li);
   });
 }
+
+/* ========== Engine Info com hints adicionadas ========== */
 function renderEngine(){
   const rows=[
-    ["Modelo","Banco event-sourced · log append-only imutável"],
-    ["Verdade primária","evento imutável (nunca UPDATE/DELETE)"],
-    ["Viagem no tempo","AS OF LSN / AS OF TIMESTAMP — bit a bit"],
-    ["Prova de integridade","raiz Merkle BLAKE3 por segmento selado"],
-    ["Carimbo legal","RFC 3161 / ICP-Brasil (heraclitus-compliance)"],
-    ["Geometria","P = H³²(κ₁) × S⁸(κ₂) × E⁸ (curvaturas estimadas)"],
-    ["Consultas","GQL: MATCH · RECALL · FUSE · WHY · PROVENANCE · AS OF"],
-    ["Núcleo","Rust bare-metal · gRPC :7474 · REST :7475"]
+    ["Modelo","Banco event-sourced · log append-only imutável","Arquitetura focada na gravação contínua de blocos ordenados e persistentes de auditoria."],
+    ["Verdade primária","evento imutável (nunca UPDATE/DELETE)","Bloqueia qualquer tipo de ataque de modificação histórica. O que aconteceu fica gravado para sempre."],
+    ["Viagem no tempo","AS OF LSN / AS OF TIMESTAMP — bit a bit","Recurso computacional capaz de reordenar o banco no leito exato de um milissegundo passado."],
+    ["Prova de integridade","raiz Merkle BLAKE3 por segmento selado","Função matemática ultrarrápida que detecta qualquer alteração física de bytes fora da API."],
+    ["Carimbo legal","RFC 3161 / ICP-Brasil (heraclitus-compliance)","Conformidade de timestamp auditável para processos legais junto a órgãos de controle federais."],
+    ["Geometria","P = H³²(κ₁) × S⁸(κ₂) × E⁸ (curvaturas estimadas)","Representação matemática topológica aplicada à árvore de relacionamentos de dados."],
+    ["Consultas","GQL: MATCH · RECALL · FUSE · WHY · PROVENANCE · AS OF","Linguagem nativa especializada na investigação em grafos e proveniência causal pericial."],
+    ["Núcleo","Rust bare-metal · gRPC :7474 · REST :7475","Código em baixo nível de alta concorrência e baixíssima latência operacional."]
   ];
-  let h=rows.map(r=>`<div class="info-row"><span class="muted">${r[0]}</span><b>${r[1]}</b></div>`).join("");
+  let h=rows.map(r=>`<div class="info-row" data-tip="Especificação Causal: ${escAttr(r[2])}"><span class="muted">${r[0]}</span><b>${r[1]}</b></div>`).join("");
   h+=`<div style="margin-top:12px;font-size:12px" class="muted">Roadmap</div>
-      <div class="mtags">${["M0–M18 ✅","M19 boot ✅","M20 H-VM ✅","M20 Bᵋ-tree ✅","M20 GPU CPU ✅"].map(t=>`<span class="mtag">${t}</span>`).join("")}
-      <span class="mtag wip">M20.3.1 GPU ⏳</span></div>`;
+      <div class="mtags">${["M0–M18 ✅","M19 boot ✅","M20 H-VM ✅","M20 Bᵋ-tree ✅","M20 GPU CPU ✅"].map(t=>`<span class="mtag" data-tip="Etapa concluída e homologada no plano técnico">${t}</span>`).join("")}
+      <span class="mtag wip" data-tip="Módulo técnico atualmente em fase ativa de engenharia">M20.3.1 GPU ⏳</span></div>`;
   $("#engineInfo").innerHTML=h;
 }
 
@@ -678,7 +711,7 @@ $("#whyInput").addEventListener("keydown",e=>{if(e.key==="Enter")runWhy();});
 $("#verifyBtn").onclick=verify;
 $("#tamperBtn").onclick=tamper;
 
-/* tooltip partilhado — heatmap (Secção 1) + grafo WHY (Secção 2) */
+/* ========== Alteração 3: Receptor Único e Global de Tooltips acoplado à tag 'main' ========== */
 const TIP=el("div"); TIP.id="tip"; document.body.appendChild(TIP);
 function attachTooltip(sel){
   const g=$(sel); if(!g)return;
@@ -691,13 +724,43 @@ function attachTooltip(sel){
   });
   g.addEventListener("mouseleave",()=>TIP.classList.remove("show"));
 }
-attachTooltip("#hmChart"); attachTooltip("#whyGraph");
+attachTooltip("main"); // Agora varre dinamicamente hints para todo dado dentro de qualquer painel
 
-/* tela cheia do Inspetor Causal */
-function toggleWhyFs(){ const c=$("#whyCard"); c.classList.toggle("fs"); const on=c.classList.contains("fs");
-  $("#whyFs").textContent=on?"⛶ Sair (Esc)":"⛶ Tela cheia"; document.body.style.overflow=on?"hidden":""; }
-$("#whyFs").onclick=toggleWhyFs;
-document.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&$("#whyCard").classList.contains("fs")) toggleWhyFs(); });
+/* ========== Alteração 2: Engenharia do Controlador Centralizado de Tela Cheia (FullScreen) ========== */
+function setupFullScreen(cardSel, btnSel) {
+  const c = $(cardSel);
+  const b = $(btnSel);
+  if (!c || !b) return;
+  b.onclick = (e) => {
+    e.preventDefault();
+    c.classList.toggle("fs");
+    const on = c.classList.contains("fs");
+    b.textContent = on ? "⛶ Sair (Esc)" : "⛶ Tela cheia";
+    const anyFs = document.querySelector(".card.fs");
+    document.body.style.overflow = anyFs ? "hidden" : "";
+  };
+}
+
+// Configuração sequencial de escuta de tela cheia para todos os painéis
+setupFullScreen("#tlCard", "#tlFs");
+setupFullScreen("#whyCard", "#whyFs");
+setupFullScreen("#shieldCard", "#shieldFs");
+setupFullScreen("#orgaoCard", "#orgaoFs");
+setupFullScreen("#anoCard", "#anoFs");
+setupFullScreen("#feedCard", "#feedFs");
+setupFullScreen("#engineCard", "#engineFs");
+
+// Escuta global de tecla Escape para fechar qualquer painel em foco de tela cheia
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape") {
+    document.querySelectorAll(".card.fs").forEach(c => {
+      c.classList.remove("fs");
+      const b = c.querySelector(".fsbtn");
+      if (b) b.textContent = "⛶ Tela cheia";
+    });
+    document.body.style.overflow = "";
+  }
+});
 
 $("#asof").style.setProperty("--p","100%");
 tentarLive();
