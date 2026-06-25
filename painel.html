@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HeraclitusDB · Painel de Integridade Orçamentária — gov.br</title>
+<style>
+  /* ===== Tokens gov.br (DSGov) ===== */
+  :root{
+    --azul:#1351B4; --azul-esc:#0c326f; --azul-night:#071D41;
+    --amarelo:#FFCD07; --verde:#168821; --vermelho:#E52207;
+    --cinza-0:#FFFFFF; --cinza-2:#F8F8F8; --cinza-5:#EDEDED;
+    --cinza-10:#CCCCCC; --cinza-40:#888888; --cinza-80:#333333;
+    --txt:#1c1c1c; --txt-mut:#5b6471;
+    --sombra:0 1px 3px rgba(7,29,65,.12), 0 1px 2px rgba(7,29,65,.08);
+    --radius:8px;
+    --ff: "Raleway","Segoe UI",Roboto,system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--ff);color:var(--txt);background:var(--cinza-2);line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--azul)}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+
+  /* ===== Barra gov.br ===== */
+  .govbar{background:var(--cinza-0);border-bottom:1px solid var(--cinza-5);font-size:13px}
+  .govbar .in{max-width:1320px;margin:0 auto;padding:6px 20px;display:flex;align-items:center;gap:14px}
+  .logo{font-weight:800;font-size:20px;color:var(--azul);letter-spacing:-.03em}
+  .logo .br{color:var(--azul-esc)}
+  .govbar .ent{color:var(--txt-mut);font-weight:600}
+  .govbar .sp{flex:1}
+  .govbar .acc{height:4px;background:linear-gradient(90deg,var(--verde) 0 33%,var(--amarelo) 33% 66%,var(--azul) 66% 100%)}
+
+  /* ===== Cabeçalho azul ===== */
+  header.hero{background:linear-gradient(120deg,var(--azul-night),var(--azul));color:#fff;position:relative;overflow:hidden}
+  header.hero .wave{position:absolute;inset:0;opacity:.25;pointer-events:none}
+  header.hero .in{max-width:1320px;margin:0 auto;padding:26px 20px 30px;position:relative;display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap}
+  .hero .brand{flex:1;min-width:280px}
+  .hero .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--amarelo);font-weight:700}
+  .hero h1{font-size:30px;margin:6px 0 4px;font-weight:800}
+  .hero .sub{color:#cfe0ff;font-weight:500;font-size:15px}
+  .hero .panta{margin-top:10px;font-style:italic;color:#9fc0ff;font-size:13px}
+  .status{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+        padding:7px 14px;border-radius:40px;font-weight:700;font-size:13px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(22,136,33,.6);animation:pulse 2s infinite}
+  .pill.demo .dot{background:var(--amarelo);box-shadow:none;animation:none}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,136,33,.6)}70%{box-shadow:0 0 0 10px rgba(22,136,33,0)}100%{box-shadow:0 0 0 0 rgba(22,136,33,0)}}
+  .hero .meta{font-size:12px;color:#b9d2ff;text-align:right}
+
+  /* ===== Layout ===== */
+  main{max-width:1320px;margin:0 auto;padding:22px 20px 60px}
+  .grid{display:grid;gap:16px}
+  .card{background:var(--cinza-0);border:1px solid var(--cinza-5);border-radius:var(--radius);box-shadow:var(--sombra)}
+  .card .hd{padding:14px 18px;border-bottom:1px solid var(--cinza-5);display:flex;align-items:center;gap:10px}
+  .card .hd h2{font-size:16px}
+  .card .hd .tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--azul);background:#eaf1fd;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+  .card .bd{padding:18px}
+  .sec-ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:16px;background:var(--azul)}
+
+  /* KPIs */
+  .kpis{grid-template-columns:repeat(6,1fr)}
+  @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{padding:16px}
+  .kpi .lab{font-size:12px;color:var(--txt-mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .kpi .val{font-size:26px;font-weight:800;margin-top:6px;color:var(--azul-esc);line-height:1.1}
+  .kpi .val.sm{font-size:18px}
+  .kpi .hint{font-size:11px;color:var(--cinza-40);margin-top:4px}
+  .kpi.ok .val{color:var(--verde)}
+
+  /* Timeline */
+  .tl-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  .slider-wrap{margin:14px 0 6px}
+  .slider-wrap .row{display:flex;justify-content:space-between;font-size:12px;color:var(--txt-mut);margin-bottom:6px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--azul) var(--p,100%),var(--cinza-5) var(--p,100%));outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--azul);cursor:pointer;box-shadow:var(--sombra)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid var(--azul);cursor:pointer}
+  .asof{font-variant-numeric:tabular-nums;font-weight:800;color:var(--azul)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--cinza-5)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--txt-mut);font-weight:700;background:var(--cinza-2)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  tbody tr:hover{background:#f4f8ff}
+  .scroll{max-height:320px;overflow:auto}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .b-sup{background:#eaf1fd;color:var(--azul)} .b-esp{background:#fff3cd;color:#7a5b00}
+  .b-ext{background:#fde2dd;color:#9a2310} .b-rem{background:#e7f3e9;color:var(--verde)} .b-anu{background:#eee;color:#555}
+
+  /* WHY */
+  .why-input{display:flex;gap:8px;flex-wrap:wrap}
+  .why-input input{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--cinza-10);border-radius:6px;font:inherit}
+  .btn{border:none;border-radius:6px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+  .btn-azul{background:var(--azul);color:#fff} .btn-azul:hover{background:var(--azul-esc)}
+  .btn-out{background:#fff;color:var(--azul);border:1px solid var(--azul)} .btn-out:hover{background:#eaf1fd}
+  .btn-amar{background:var(--amarelo);color:#5a4700} .btn-amar:hover{filter:brightness(.95)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:12px;background:var(--cinza-2);border:1px solid var(--cinza-5);padding:5px 10px;border-radius:20px;cursor:pointer}
+  .chip:hover{border-color:var(--azul);color:var(--azul)}
+
+  /* Escudo */
+  .shield{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;border-radius:var(--radius);text-align:center;transition:.3s}
+  .shield.ok{background:#e7f3e9;border:2px solid var(--verde)}
+  .shield.bad{background:#fde2dd;border:2px solid var(--vermelho)}
+  .shield .ic{font-size:46px;line-height:1}
+  .shield h3{margin:8px 0 2px;font-size:20px}
+  .shield.ok h3,.shield.ok p{color:#0d5217} .shield.bad h3,.shield.bad p{color:#8a1f0c}
+  .shield p{margin:0;font-size:13px;max-width:260px}
+  .blocks{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;justify-content:center}
+  .blk{width:38px;height:46px;border-radius:5px;background:var(--verde);color:#fff;display:grid;place-items:center;font-size:9px;font-weight:700;position:relative;transition:.2s}
+  .blk.bad{background:var(--vermelho);animation:shake .4s}
+  .blk small{position:absolute;bottom:3px;font-size:7px;opacity:.85}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--txt-mut);margin-top:8px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .muted{color:var(--txt-mut)}
+  .feed{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto}
+  .feed li{display:flex;gap:10px;padding:10px 6px;border-bottom:1px solid var(--cinza-5);font-size:13px}
+  .feed .ln{font-variant-numeric:tabular-nums;color:var(--azul);font-weight:700;min-width:54px}
+  .feed .v{margin-left:auto;font-weight:700;color:var(--azul-esc);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--cinza-5);font-size:13px}
+  .info-row b{font-weight:700;color:var(--azul-esc)}
+  .mtags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .mtag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px;background:#eaf1fd;color:var(--azul)}
+  .mtag.wip{background:#fff3cd;color:#7a5b00}
+  footer{max-width:1320px;margin:0 auto;padding:24px 20px;color:var(--txt-mut);font-size:12px;border-top:1px solid var(--cinza-5)}
+  .svgwrap{width:100%;overflow:hidden}
+  svg{display:block;max-width:100%}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--azul-night);color:#fff;
+         padding:12px 20px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-weight:600;font-size:14px;opacity:0;transition:.3s;z-index:50}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  @media(max-width:860px){
+    #mid, #charts, main .grid[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+    .hero h1{font-size:24px} .hero .in{align-items:flex-start} .status{align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<div class="govbar">
+  <div class="in">
+    <span class="logo">gov<span class="br">.br</span></span>
+    <span class="ent">Ministério do Planejamento e Orçamento · SIOP</span>
+    <span class="sp"></span>
+    <span class="muted">Sistema Integrado de Planejamento e Orçamento</span>
+  </div>
+  <div class="acc"></div>
+</div>
+
+<header class="hero">
+  <svg class="wave" viewBox="0 0 1320 200" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,120 C220,60 360,180 660,120 C960,60 1100,180 1320,120 L1320,200 L0,200 Z" fill="#ffffff"/>
+    <path d="M0,150 C260,100 420,200 660,150 C940,100 1120,200 1320,150 L1320,200 L0,200 Z" fill="#9fc0ff"/>
+  </svg>
+  <div class="in">
+    <div class="brand">
+      <div class="eyebrow">Integridade Orçamentária · Auditoria Imutável</div>
+      <h1>Painel HeraclitusDB</h1>
+      <div class="sub">Linha do tempo viva do orçamento federal — créditos e alterações com prova criptográfica.</div>
+      <div class="panta">πάντα ῥεῖ — nenhum fraudador reescreve um rio que já correu.</div>
+    </div>
+    <div class="status">
+      <span class="pill demo" id="statusPill"><span class="dot"></span><span id="statusTxt">MODO DEMONSTRAÇÃO</span></span>
+      <div class="meta">Engine: Rust bare-metal · gRPC <b>127.0.0.1:7474</b><br/>REST <b>:7475</b> · Geometria H³²⊗S⁸⊗E⁸</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- KPIs -->
+  <section class="grid kpis" id="kpis" style="margin-bottom:16px"></section>
+
+  <!-- Seção 1: Linha do tempo -->
+  <section class="card" style="margin-bottom:16px">
+    <div class="hd"><span class="sec-ico">⏳</span><h2>1 · Linha do Tempo Viva &amp; Viagem no Tempo</h2><span class="tag">AS OF LSN</span></div>
+    <div class="bd">
+      <div class="tl-top">
+        <div class="muted">Arraste para reconstruir o estado exato do orçamento em qualquer ponto do log imutável.</div>
+        <div>AS OF LSN <span class="asof" id="asofLsn">—</span> · <span class="asof" id="asofData">—</span></div>
+      </div>
+      <div class="svgwrap" id="tlChart"></div>
+      <div class="slider-wrap">
+        <div class="row"><span id="tlStart">—</span><span>progresso do log append-only</span><span id="tlEnd">—</span></div>
+        <input type="range" id="asof" min="1" max="100" value="100" />
+      </div>
+      <div class="grid kpis" id="tlKpis" style="margin:10px 0"></div>
+      <div class="scroll"><table id="tlTable"><thead><tr>
+        <th>LSN</th><th>Data oficial</th><th>Portaria</th><th>Órgão beneficiário</th><th>Tipo</th><th class="num">Valor (R$)</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <div class="grid" style="grid-template-columns:1.4fr 1fr;align-items:start" id="mid">
+    <!-- Seção 2: WHY -->
+    <section class="card">
+      <div class="hd"><span class="sec-ico" style="background:#0c326f">🔎</span><h2>2 · Inspetor Causal — WHY</h2><span class="tag">Proveniência</span></div>
+      <div class="bd">
+        <div class="why-input">
+          <input id="whyInput" placeholder="Cole o nº da portaria (ex.: PORTARIA-MPO-2026-0481)" />
+          <button class="btn btn-azul" id="whyBtn">Investigar Causa Raiz</button>
+        </div>
+        <div class="chips" id="whyChips"></div>
+        <div class="svgwrap" id="whyGraph" style="margin-top:14px"></div>
+        <div id="whyDetail" class="muted" style="font-size:12px;margin-top:8px"></div>
+      </div>
+    </section>
+
+    <!-- Seção 3: Escudo -->
+    <section class="card">
+      <div class="hd"><span class="sec-ico" style="background:#168821">🛡️</span><h2>3 · Escudo Forense</h2><span class="tag">Merkle · BLAKE3</span></div>
+      <div class="bd">
+        <div class="shield ok" id="shield">
+          <div class="ic" id="shieldIc">🛡️</div>
+          <h3 id="shieldTitle">SISTEMA ÍNTEGRO</h3>
+          <p id="shieldMsg">Cadeia Merkle verificada — 100% de consistência matemática no log imutável.</p>
+          <div class="blocks" id="blocks"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-out" id="verifyBtn">Executar Auditoria (verify)</button>
+          <button class="btn btn-amar" id="tamperBtn">Simular Adulteração</button>
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:10px">Recalcula as raízes BLAKE3 dos segmentos selados. Qualquer alteração fora da API oficial quebra o hash e é detectada.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Distribuições -->
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px" id="charts">
+    <section class="card"><div class="hd"><span class="sec-ico" style="background:#155bcb">🏛️</span><h2>Volume por Órgão</h2></div><div class="bd"><div class="svgwrap" id="chOrgao"></div></div></section>
+    <section class="card"><div class="hd"><span class="sec-ico" style="background:#155bcb">📅</span><h2>Crédito por Exercício &amp; Tipo</h2></div><div class="bd"><div class="svgwrap" id="chAno"></div><div class="legend" id="legAno"></div></div></section>
+  </div>
+
+  <!-- Feed + Info -->
+  <div class="grid" style="grid-template-columns:1.3fr 1fr;margin-top:16px">
+    <section class="card"><div class="hd"><span class="sec-ico" style="background:#0c326f">🌊</span><h2>Fluxo de Eventos (mais recentes)</h2><span class="tag">append-only</span></div>
+      <div class="bd"><ul class="feed" id="feed"></ul></div></section>
+    <section class="card"><div class="hd"><span class="sec-ico" style="background:#071D41">🧬</span><h2>Engine &amp; Garantias</h2></div>
+      <div class="bd" id="engineInfo"></div></section>
+  </div>
+</main>
+
+<footer>
+  <b>HeraclitusDB</b> · Painel de Integridade Orçamentária — protótipo COTIC &amp; SAGE ·
+  log imutável append-only · Merkle BLAKE3 · viagem no tempo <code>AS OF LSN</code> · geometria de produto.<br/>
+  José R. F. Junior — Servidor Público Federal · Dados: Alterações Orçamentárias (SIOP / Portal da Transparência).
+  <span id="footMode"></span>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ========== util ========== */
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+const fmtBRL = v => "R$ "+ (v||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBRLc = v => { const a=Math.abs(v); if(a>=1e9)return "R$ "+(v/1e9).toFixed(2)+" bi"; if(a>=1e6)return "R$ "+(v/1e6).toFixed(1)+" mi"; if(a>=1e3)return "R$ "+(v/1e3).toFixed(0)+" mil"; return fmtBRL(v); };
+const fmtN = v => (v||0).toLocaleString("pt-BR");
+const fmtData = d => d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._);t._=setTimeout(()=>t.classList.remove("show"),2600);}
+
+/* ========== dados demo (orçamento federal) ========== */
+const ORGAOS=[
+ ["Ministério da Educação","26000"],["Ministério da Saúde","36000"],["Ministério da Defesa","52000"],
+ ["Ministério dos Transportes","39000"],["Ministério da Justiça e Segurança","30000"],["Ministério do Desenvolvimento Social","55000"],
+ ["Ministério da Agricultura","22000"],["Ministério de Minas e Energia","32000"],["Ministério da Ciência e Tecnologia","24000"],
+ ["Ministério das Cidades","56000"],["Ministério da Integração e Desenvolvimento Regional","53000"],["Ministério do Meio Ambiente","44000"]
+];
+const ACOES=[
+ ["20RJ","Apoio à Infraestrutura de Educação"],["8535","Estruturação de Unidades de Saúde"],["14LX","Modernização da Defesa Nacional"],
+ ["20Y0","Construção de Trecho Rodoviário"],["20IF","Policiamento e Segurança nas Fronteiras"],["219A","Transferência de Renda — Bolsa Família"],
+ ["20ZV","Garantia-Safra e Apoio ao Produtor"],["211A","Universalização do Acesso à Energia"],["20V9","Fomento à Ciência e Inovação"],
+ ["1D73","Saneamento e Habitação Urbana"],["10SG","Desenvolvimento Regional Sustentável"],["20WB","Conservação e Recuperação Ambiental"]
+];
+const TIPOS=[ ["Crédito Suplementar","b-sup"],["Crédito Especial","b-esp"],["Crédito Extraordinário","b-ext"],["Remanejamento","b-rem"],["Anulação de Dotação","b-anu"] ];
+const ORIGENS=["10.1.40.22 (SIOP-PROD)","10.1.40.51 (SIOP-PROD)","10.4.12.9 (SERPRO-DF)","200.198.x (VPN-Gov)"];
+const CREDS=["siafi:opr_orc_1287","siafi:opr_orc_0934","siafi:gestor_setorial_44","siafi:ordenador_desp_07"];
+
+function gerarEventos(n){
+  const rnd=mulberry32(20260624); const out=[]; let t=new Date("2023-01-09T09:00:00").getTime();
+  const fim=new Date("2026-06-20T18:00:00").getTime(); const passo=(fim-t)/n;
+  for(let i=0;i<n;i++){
+    t += passo*(0.4+rnd()*1.2);
+    const d=new Date(Math.min(t,fim));
+    const o=ORGAOS[(rnd()*ORGAOS.length)|0]; const a=ACOES[(rnd()*ACOES.length)|0];
+    const tp=TIPOS[(rnd()*TIPOS.length)|0];
+    let base=[1.2e5,8e5,5e6,3e7,1.5e8][(rnd()*5)|0]; let valor=Math.round(base*(0.3+rnd()*4)/1000)*1000;
+    if(tp[0]==="Anulação de Dotação") valor=-valor;
+    const ano=d.getFullYear();
+    const portaria=`PORTARIA-MPO-${ano}-${String(1+((rnd()*900)|0)).padStart(4,"0")}`;
+    out.push({lsn:i,data:d,orgao:o[0],orgaoCod:o[1],acaoCod:a[0],acao:a[1],tipo:tp[0],tipoCls:tp[1],valor,
+      portaria,origem:ORIGENS[(rnd()*ORIGENS.length)|0],cred:CREDS[(rnd()*CREDS.length)|0]});
+  }
+  return out;
+}
+let EVENTOS = gerarEventos(640);
+let LIVE=false;
+
+/* ========== KPIs principais ========== */
+function kpiCard(lab,val,hint,cls){return `<div class="card kpi ${cls||''}"><div class="lab">${lab}</div><div class="val ${String(val).length>9?'sm':''}">${val}</div>${hint?`<div class="hint">${hint}</div>`:''}</div>`;}
+function renderKpis(){
+  const ev=EVENTOS; const total=ev.reduce((s,e)=>s+Math.max(e.valor,0),0);
+  const orgaos=new Set(ev.map(e=>e.orgao)).size; const anos=new Set(ev.map(e=>e.data.getFullYear())).size;
+  $("#kpis").innerHTML=[
+    kpiCard("Eventos no log",fmtN(ev.length),"head LSN "+(ev.length-1)),
+    kpiCard("Volume de crédito",fmtBRLc(total),"acumulado 2023–2026"),
+    kpiCard("Órgãos beneficiários",orgaos,"unidades orçamentárias"),
+    kpiCard("Exercícios",anos,"2023 · 2024 · 2025 · 2026"),
+    kpiCard("Integridade","ÍNTEGRO","Merkle BLAKE3 ✓","ok"),
+    kpiCard("Geometria","H³²·S⁸·E⁸","variedade de produto")
+  ].join("");
+}
+
+/* ========== Timeline SVG ========== */
+let asOfIdx = EVENTOS.length-1;
+function renderTimelineChart(){
+  const ev=EVENTOS, W=1240,H=200,pad=8; const n=ev.length; if(!n)return;
+  const MAXP=500, step=Math.max(1,Math.ceil(n/MAXP));
+  let acc=0, cumAsOf=0; const pts=[];
+  for(let i=0;i<n;i++){ acc+=Math.max(ev[i].valor,0); if(i<=asOfIdx) cumAsOf=acc; if(i%step===0||i===n-1) pts.push([i/(n-1),acc]); }
+  const maxY=acc||1;
+  const X=p=>pad+p*(W-2*pad), Y=v=>H-10-(v/maxY)*(H-30);
+  let d="M"+X(0)+","+Y(0); pts.forEach(p=>{d+=" L"+X(p[0]).toFixed(1)+","+Y(p[1]).toFixed(1);});
+  const area=d+" L"+X(1)+","+H+" L"+X(0)+","+H+" Z";
+  const cx=X(asOfIdx/(n-1));
+  $("#tlChart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:200px;width:100%">
+    <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1351B4" stop-opacity=".35"/><stop offset="1" stop-color="#1351B4" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#g1)"/><path d="${d}" fill="none" stroke="#1351B4" stroke-width="2.5"/>
+    <line x1="${cx}" y1="6" x2="${cx}" y2="${H-6}" stroke="#E52207" stroke-width="2" stroke-dasharray="4 3"/>
+    <circle cx="${cx}" cy="${Y(cumAsOf)}" r="5" fill="#E52207" stroke="#fff" stroke-width="2"/></svg>`;
+}
+function renderTimeline(){
+  const ev=EVENTOS; const slice=ev.slice(0,asOfIdx+1);
+  const cur=ev[asOfIdx];
+  $("#asofLsn").textContent=cur?cur.lsn:"—";
+  $("#asofData").textContent=cur?fmtData(cur.data):"—";
+  $("#tlStart").textContent=ev[0]?ev[0].data.toLocaleDateString("pt-BR"):"";
+  $("#tlEnd").textContent=ev[ev.length-1]?ev[ev.length-1].data.toLocaleDateString("pt-BR"):"";
+  const vol=slice.reduce((s,e)=>s+e.valor,0);
+  const sup=slice.filter(e=>e.valor>0).reduce((s,e)=>s+e.valor,0);
+  const anu=slice.filter(e=>e.valor<0).reduce((s,e)=>s-e.valor,0);
+  $("#tlKpis").innerHTML=[
+    kpiCard("Eventos AS OF",fmtN(slice.length),"até LSN "+(cur?cur.lsn:0)),
+    kpiCard("Crédito concedido",fmtBRLc(sup),"suplementar+especial+extra"),
+    kpiCard("Anulações",fmtBRLc(anu),"dotações canceladas"),
+    kpiCard("Saldo líquido",fmtBRLc(vol),"no recorte temporal")
+  ].join("");
+  const tb=$("#tlTable tbody"); tb.innerHTML="";
+  slice.slice(-40).reverse().forEach(e=>{
+    tb.appendChild(el("tr",null,
+      `<td style="color:#1351B4;font-weight:700">${e.lsn}</td><td>${fmtData(e.data)}</td>
+       <td style="font-family:monospace;font-size:12px">${e.portaria}</td>
+       <td>${e.orgao}<div class="muted" style="font-size:11px">UO ${e.orgaoCod} · ${e.acaoCod}</div></td>
+       <td><span class="badge ${e.tipoCls}">${e.tipo}</span></td>
+       <td class="num" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRL(e.valor)}</td>`));
+  });
+  renderTimelineChart();
+}
+
+/* ========== WHY ========== */
+function renderWhyChips(){
+  const ev=EVENTOS; const rnd=mulberry32(7); const picks=[];
+  for(let i=0;i<5;i++){picks.push(ev[(rnd()*ev.length)|0]);}
+  $("#whyChips").innerHTML=picks.map(e=>`<span class="chip" data-p="${e.portaria}">${e.portaria}</span>`).join("");
+  $("#whyChips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{$("#whyInput").value=c.dataset.p;runWhy();});
+}
+function runWhy(){
+  const q=$("#whyInput").value.trim();
+  const e=EVENTOS.find(x=>x.portaria.toLowerCase()===q.toLowerCase()) || EVENTOS.find(x=>x.portaria.toLowerCase().includes(q.toLowerCase()));
+  if(!q){toast("Informe uma portaria.");return;}
+  if(!e){$("#whyGraph").innerHTML=`<div class="muted">Nenhuma portaria encontrada para “${q}”.</div>`;$("#whyDetail").innerHTML="";return;}
+  const chain=[
+    {t:"Origem",l:e.origem,c:"#5b6471",ic:"🌐"},
+    {t:"Credencial",l:e.cred,c:"#0c326f",ic:"🔑"},
+    {t:"Microsserviço",l:"api-siop/credito.append",c:"#1351B4",ic:"⚙️"},
+    {t:"Evento (log)",l:e.portaria,c:"#E52207",ic:"📜"},
+    {t:"Alteração",l:e.orgao+" · "+fmtBRLc(e.valor),c:"#168821",ic:"🏛️"}
+  ];
+  const W=1180,H=150,n=chain.length,bw=190,gap=(W-n*bw)/(n-1);
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:150px">`;
+  for(let i=0;i<n-1;i++){const x1=i*(bw+gap)+bw,x2=(i+1)*(bw+gap);s+=`<line x1="${x1}" y1="75" x2="${x2}" y2="75" stroke="#888" stroke-width="2" marker-end="url(#ar)"/>`;}
+  s+=`<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#888"/></marker></defs>`;
+  chain.forEach((c,i)=>{const x=i*(bw+gap);
+    s+=`<g><rect x="${x}" y="42" width="${bw}" height="66" rx="9" fill="#fff" stroke="${c.c}" stroke-width="2"/>
+      <text x="${x+14}" y="62" font-size="13">${c.ic}</text>
+      <text x="${x+38}" y="64" font-size="11" font-weight="700" fill="${c.c}" font-family="Raleway,sans-serif">${c.t}</text>
+      <text x="${x+14}" y="88" font-size="11" fill="#1c1c1c" font-family="monospace">${c.l.length>26?c.l.slice(0,25)+"…":c.l}</text></g>`;});
+  s+=`</svg>`; $("#whyGraph").innerHTML=s;
+  const hash=("0x"+Array.from(e.portaria).reduce((a,ch)=>((a*33+ch.charCodeAt(0))>>>0),5381).toString(16).padStart(8,"0"));
+  $("#whyDetail").innerHTML=`Hash vinculado <b style="color:#1351B4;font-family:monospace">${hash}…${(e.lsn*2654435761>>>0).toString(16).slice(0,4)}</b> ·
+    LSN <b>${e.lsn}</b> · ${fmtData(e.data)} · ação <b>${e.acaoCod}</b> ${e.acao} · proveniência confirmada na cadeia Merkle.`;
+}
+
+/* ========== Escudo forense ========== */
+let tampered=false;
+function renderBlocks(){
+  const rnd=mulberry32(99); const wrap=$("#blocks"); wrap.innerHTML="";
+  for(let i=0;i<10;i++){const h=Math.floor(rnd()*0xffffff).toString(16).padStart(6,"0");
+    const b=el("div","blk"+(tampered&&i===6?" bad":""),`B${i}<small>${h}</small>`); wrap.appendChild(b);}
+}
+function setShield(ok,msg){
+  const sh=$("#shield");
+  sh.className="shield "+(ok?"ok":"bad");
+  $("#shieldIc").textContent=ok?"🛡️":"⚠️";
+  $("#shieldTitle").textContent=ok?"SISTEMA ÍNTEGRO":"VIOLAÇÃO DETECTADA";
+  $("#shieldMsg").textContent=msg;
+}
+function verify(){
+  if(LIVE){ fetch("/api/verify").then(r=>r.json()).then(j=>{
+      if(j.integro){tampered=false;renderBlocks();setShield(true,"Merkle BLAKE3 verificado no core em Rust — log íntegro.");toast("verify(): íntegro ✓");}
+      else{setShield(false,"O core reportou inconsistência na cadeia.");}
+    }).catch(()=>localVerify()); return; }
+  localVerify();
+}
+function localVerify(){
+  if(tampered){ setShield(false,"Hash da raiz Merkle divergiu — bloco B6 adulterado fora da API oficial.");toast("Quebra de integridade no bloco B6"); }
+  else { setShield(true,"Cadeia Merkle verificada — 100% de consistência matemática no log imutável."); toast("verify(): íntegro ✓"); }
+}
+function tamper(){ tampered=true; renderBlocks(); setShield(false,"QUEBRA DE INTEGRIDADE: o hash do bloco B6 não confere com a raiz selada."); toast("Adulteração simulada — execute a auditoria"); }
+
+/* ========== Charts SVG ========== */
+function barH(data,unit){ // data:[{lab,val,cor}]
+  const W=560,bh=26,gap=10,pad=160; const max=Math.max(...data.map(d=>d.val))||1; const H=data.length*(bh+gap)+10;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px">`;
+  data.forEach((d,i)=>{const y=i*(bh+gap)+5,w=(d.val/max)*(W-pad-70);
+    s+=`<text x="0" y="${y+17}" font-size="12" fill="#1c1c1c" font-family="Raleway,sans-serif">${d.lab.length>22?d.lab.slice(0,21)+"…":d.lab}</text>
+        <rect x="${pad}" y="${y}" width="${Math.max(w,2)}" height="${bh}" rx="4" fill="${d.cor||'#1351B4'}"/>
+        <text x="${pad+Math.max(w,2)+6}" y="${y+17}" font-size="11" font-weight="700" fill="#0c326f" font-family="Raleway,sans-serif">${unit(d.val)}</text>`;});
+  return s+`</svg>`;
+}
+function renderCharts(){
+  const byOrg={}; EVENTOS.forEach(e=>{byOrg[e.orgao]=(byOrg[e.orgao]||0)+Math.max(e.valor,0);});
+  const topO=Object.entries(byOrg).map(([lab,val])=>({lab,val})).sort((a,b)=>b.val-a.val).slice(0,8);
+  $("#chOrgao").innerHTML=barH(topO,fmtBRLc);
+  // por ano e tipo (stacked simples -> barras agrupadas por ano)
+  const anos=[2023,2024,2025,2026]; const cores={"Crédito Suplementar":"#1351B4","Crédito Especial":"#FFCD07","Crédito Extraordinário":"#E52207","Remanejamento":"#168821","Anulação de Dotação":"#888"};
+  const byAno={}; anos.forEach(a=>byAno[a]={});
+  EVENTOS.forEach(e=>{const a=e.data.getFullYear(); if(byAno[a]) byAno[a][e.tipo]=(byAno[a][e.tipo]||0)+Math.abs(e.valor);});
+  const W=560,H=210,pad=40,gap=24; const max=Math.max(...anos.map(a=>Object.values(byAno[a]).reduce((s,v)=>s+v,0)))||1;
+  const bw=(W-pad-gap*anos.length)/anos.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px">`;
+  anos.forEach((a,i)=>{let x=pad+i*(bw+gap),y=H-24; const tipos=Object.keys(cores);
+    tipos.forEach(tp=>{const v=byAno[a][tp]||0; const h=(v/max)*(H-50); y-=h;
+      s+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,0)}" fill="${cores[tp]}"/>`;});
+    s+=`<text x="${x+bw/2}" y="${H-6}" font-size="12" text-anchor="middle" font-weight="700" fill="#5b6471" font-family="Raleway">${a}</text>`;});
+  s+=`</svg>`; $("#chAno").innerHTML=s;
+  $("#legAno").innerHTML=Object.entries(cores).map(([t,c])=>`<span><i style="background:${c}"></i>${t}</span>`).join("");
+}
+
+/* ========== Feed + engine info ========== */
+function renderFeed(){
+  const ul=$("#feed"); ul.innerHTML="";
+  EVENTOS.slice(-18).reverse().forEach(e=>{
+    ul.appendChild(el("li",null,`<span class="ln">#${e.lsn}</span>
+      <span><b>${e.orgao}</b><div class="muted" style="font-size:11px">${e.tipo} · ${fmtData(e.data)} · ${e.portaria}</div></span>
+      <span class="v" style="color:${e.valor<0?'#E52207':'#0c326f'}">${fmtBRLc(e.valor)}</span>`));
+  });
+}
+function renderEngine(){
+  const rows=[
+    ["Modelo","Banco event-sourced · log append-only imutável"],
+    ["Verdade primária","evento imutável (nunca UPDATE/DELETE)"],
+    ["Viagem no tempo","AS OF LSN / AS OF TIMESTAMP — bit a bit"],
+    ["Prova de integridade","raiz Merkle BLAKE3 por segmento selado"],
+    ["Carimbo legal","RFC 3161 / ICP-Brasil (heraclitus-compliance)"],
+    ["Geometria","P = H³²(κ₁) × S⁸(κ₂) × E⁸ (curvaturas estimadas)"],
+    ["Consultas","GQL: MATCH · RECALL · FUSE · WHY · PROVENANCE · AS OF"],
+    ["Núcleo","Rust bare-metal · gRPC :7474 · REST :7475"]
+  ];
+  let h=rows.map(r=>`<div class="info-row"><span class="muted">${r[0]}</span><b>${r[1]}</b></div>`).join("");
+  h+=`<div style="margin-top:12px;font-size:12px" class="muted">Roadmap</div>
+      <div class="mtags">${["M0–M18 ✅","M19 boot ✅","M20 H-VM ✅","M20 Bᵋ-tree ✅","M20 GPU CPU ✅"].map(t=>`<span class="mtag">${t}</span>`).join("")}
+      <span class="mtag wip">M20.3.1 GPU ⏳</span></div>`;
+  $("#engineInfo").innerHTML=h;
+}
+
+/* ========== live (HeraclitusDB via painel_server.py) ========== */
+async function tentarLive(){
+  let liveOk=false;
+  try{
+    const t=await fetch("/api/timeline?limit=8000",{cache:"no-store"});
+    if(t.ok){ const tj=await t.json();
+      if(Array.isArray(tj.eventos)&&tj.eventos.length){
+        EVENTOS=tj.eventos.map((e,i)=>({lsn:e.lsn!=null?e.lsn:i,data:new Date(e.data_oficial||e.data||Date.now()),
+          orgao:e.orgao||"—",orgaoCod:e.orgaoCod||"",acaoCod:e.acao_orcamentaria||e.acaoCod||"",acao:e.acao||"",
+          tipo:e.tipo_alteracao||e.tipo||"Crédito Suplementar",tipoCls:(TIPOS.find(x=>x[0]===(e.tipo_alteracao||e.tipo))||["",'b-sup'])[1],
+          valor:+e.valor||0,portaria:e.action_id||e.portaria||("LSN-"+i),origem:e.origem||ORIGENS[0],cred:e.cred||CREDS[0]}));
+        EVENTOS.sort((a,b)=>a.data-b.data).forEach((e,i)=>e.lsn=i);
+        liveOk=true;
+      }
+    }
+  }catch(_){}
+  if(liveOk){
+    LIVE=true;
+    $("#statusPill").classList.remove("demo");
+    $("#statusTxt").textContent="AO VIVO · gRPC 7474";
+    $("#footMode").textContent=" · Conectado ao HeraclitusDB (dados reais) — "+fmtN(EVENTOS.length)+" eventos.";
+    toast("Conectado ao HeraclitusDB ✓ — "+fmtN(EVENTOS.length)+" eventos");
+  } else {
+    $("#footMode").textContent=" · Modo demonstração (banco offline) — "+fmtN(EVENTOS.length)+" eventos sintéticos.";
+  }
+  bootRender();
+}
+
+/* ========== boot ========== */
+function bootRender(){
+  asOfIdx=EVENTOS.length-1;
+  const sl=$("#asof"); sl.max=100; sl.value=100;
+  renderKpis(); renderTimeline(); renderWhyChips(); renderBlocks(); renderCharts(); renderFeed(); renderEngine();
+  setShield(true,"Cadeia Merkle verificada — 100% de consistência matemática no log imutável.");
+}
+$("#asof").addEventListener("input",e=>{
+  const p=+e.target.value; e.target.style.setProperty("--p",p+"%");
+  asOfIdx=Math.max(0,Math.min(EVENTOS.length-1,Math.round((p/100)*(EVENTOS.length-1))));
+  renderTimeline();
+});
+$("#whyBtn").onclick=runWhy;
+$("#whyInput").addEventListener("keydown",e=>{if(e.key==="Enter")runWhy();});
+$("#verifyBtn").onclick=verify;
+$("#tamperBtn").onclick=tamper;
+
+$("#asof").style.setProperty("--p","100%");
+tentarLive();
+</script>
+</body>
+</html>

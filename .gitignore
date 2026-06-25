@@ -1,0 +1,18 @@
+# dados públicos SIOP (grandes — não versionar; baixar do Portal da Transparência)
+*.csv
+
+# ambiente virtual Python
+env/
+.venv/
+venv/
+
+# cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# saídas/temporários de runtime
+*.out
+*.err
+*.pid
+*.log
